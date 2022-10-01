@@ -1,0 +1,22 @@
+{
+  "name": "v2-ts-bot",
+  "version": "0.0.1",
+  "description": "Discord bot for the v2 server, rewritten in typescript and the newer discordjs version",
+  "main": "Bot.ts",
+  "scripts": {
+    "start": "ts-node src/Bot.ts",
+    "dev": "npx nodemon ./src/Bot.ts"
+  },
+  "author": "MattijnStolk",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^14.5.0",
+    "dotenv": "^16.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^18.7.23",
+    "nodemon": "^2.0.20",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.8.4"
+  }
+}
