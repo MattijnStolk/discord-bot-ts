@@ -3,8 +3,6 @@ import { Command } from "./Command";
 import fs from 'node:fs'
 import path from 'node:path'
 
-// console.log(Hello)
-
 const commandsPath = path.join(__dirname, 'commands');
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.ts'))
 

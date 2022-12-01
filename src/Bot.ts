@@ -5,8 +5,6 @@ import * as dotenv from 'dotenv'
 
 dotenv.config()
 
-console.log("bot is booting up")
-
 const client = new Client({
     intents: []
 })
@@ -15,3 +13,6 @@ ready(client)
 interactionCreate(client)
 
 client.login(process.env.DISCORDKEY)
+
+// documentation
+// https://discord.com/developers/docs/interactions/application-commands#authorizing-your-application

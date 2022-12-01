@@ -8,6 +8,10 @@ export const log: Command = {
     run: async (client: Client, interaction: CommandInteraction) => {
         const content = "<template>";
 
+        //todo: get the channel the msg has been sent in
+
+        console.log(interaction)
+
         await interaction.followUp({
             ephemeral: true,
             content
