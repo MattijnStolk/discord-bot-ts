@@ -1,18 +1,18 @@
-import { Client } from "discord.js";
-import ready from "./listeners/ready"
-import interactionCreate from "./listeners/interactionCreate"
+import { Client } from 'discord.js'
+import ready from './listeners/ready'
+import interactionCreate from './listeners/interactionCreate'
 import * as dotenv from 'dotenv'
 
 dotenv.config()
 
 const client = new Client({
-    intents: []
+  intents: [],
 })
 
 ready(client)
 interactionCreate(client)
 
-client.login(process.env.DISCORDKEY)
+client.login(process.env.CLIENT_TOKEN)
 
 // documentation
 // https://discord.com/developers/docs/interactions/application-commands#authorizing-your-application
