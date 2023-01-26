@@ -1,16 +1,30 @@
 import { Client } from 'discord.js'
+
+//listeners
 import ready from './listeners/ready'
 import interactionCreate from './listeners/interactionCreate'
-import * as dotenv from 'dotenv'
+import presenceUpdate from './listeners/presenceUpdate'
+import guildMemberAdd from './listeners/guildMemberAdd'
+import guildMemberRemove from './listeners/guildMemberRemove'
 
+import * as dotenv from 'dotenv'
 dotenv.config()
 
 const client = new Client({
-  intents: [],
+  intents: [
+    'Guilds',
+    'GuildPresences',
+    'GuildMembers',
+    'GuildMessages',
+    'GuildMessageReactions',
+  ],
 })
 
+guildMemberRemove(client)
+guildMemberAdd(client)
 ready(client)
 interactionCreate(client)
+// presenceUpdate(client)
 
 client.login(process.env.CLIENT_TOKEN)
 
