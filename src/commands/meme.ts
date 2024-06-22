@@ -7,12 +7,19 @@ import {
 import { Command } from '../Command'
 import { meme } from 'memejs'
 
+type memeEmbet = {
+  title: string
+  url: string
+  subreddit: string
+  author: string
+}
+
 const altURL =
   'https://cdn.discordapp.com/attachments/971431997304094781/1048357331701862410/unknown.png'
 
 export const memeCommand: Command = {
   name: 'meme',
-  description: '<template>',
+  description: 'get a meme from reddit',
   options: [
     {
       name: 'subreddit',
@@ -47,19 +54,12 @@ export const memeCommand: Command = {
   run: async (client: Client, interaction: CommandInteraction) => {
     let subreddit =
       (interaction.options.get('subreddit')?.value! as string) ?? 'dankmemes'
-    let data = {
-      // this is used so the object doesn't break
-      title: 'placeholder',
-      url: 'www.placeholder.com',
-      subreddit: 'placeholder',
-      author: 'placeholder',
-    }
 
     await meme(subreddit)
       .then((m) => createEmbed(m))
       .catch((e) => createEmbed(e))
 
-    async function createEmbed(data: any) {
+    async function createEmbed(data: memeEmbet) {
       let embed: EmbedBuilder
 
       if (typeof data !== 'object') {
