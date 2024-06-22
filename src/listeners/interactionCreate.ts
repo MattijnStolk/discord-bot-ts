@@ -2,7 +2,6 @@ import {
   CommandInteraction,
   Client,
   Interaction,
-  TextChannel,
 } from 'discord.js'
 import { Commands } from '../Commands'
 
