@@ -1,30 +1,29 @@
 import { Client, TextChannel } from 'discord.js'
 
-let WELCOMECHANNELIDS = ['934587433331347546', '796696201067888651']
-let SERVERIDS = ['934587258961539144', '796103676149628929']
+let WELCOMECHANNELIDS = ['934587433331347546', '796696201067888651', '1254375703202496602']
+let SERVERIDS = ['934587258961539144', '796103676149628929', '810809827458416640']
 
 export default (client: Client): void => {
   client.on('guildMemberAdd', async (member) => {
-    if (!SERVERIDS.includes(member.guild.id)) {
+    let currentserver = member.guild.id
+    if (!SERVERIDS.includes(currentserver)) {
       console.log('Not in the right server')
       return
     }
 
     let welcomeChannels = WELCOMECHANNELIDS.map(id => client.channels.cache.find(channel => channel.id === id)).filter(Boolean) as TextChannel[];
 
-    if (welcomeChannels.length === 0) {
+    let correctWelcomeChannel = welcomeChannels.find(channel => channel.guild.id == currentserver)
+
+    if (correctWelcomeChannel == undefined) {
       console.log('No welcome channel found')
       return
     }
 
-    for (const channel of welcomeChannels) {
-      console.log(channel.name)
-    }
-
-    // welcomeChannels[0].send(`${member} Joined the cult, welcome!`)
+    correctWelcomeChannel.send(`${member} Joined the cult, welcome!`)
 
     setTimeout(() => {
-      const message = welcomeChannels[0].lastMessage
+      const message = correctWelcomeChannel.lastMessage
       message?.react('👋')
     }, 500)
   })

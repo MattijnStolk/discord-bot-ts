@@ -39,7 +39,7 @@ const replies = [
   'you are about as straight as a roundabout',
   'No not at all',
   'Nah you like women',
-  "I heard they're hiring in the red-light district.",
+  'I heard they\'re hiring in the red-light district.',
 ]
 
 const optionalReplies = [
