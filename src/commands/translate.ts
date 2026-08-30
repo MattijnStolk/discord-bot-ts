@@ -1,55 +1,79 @@
-import { CommandInteraction, Client, ApplicationCommandType } from 'discord.js'
-import { Command } from '../Command'
-
+import {
+  ApplicationCommandOptionType,
+  ChatInputCommandInteraction,
+  Client,
+} from 'discord.js'
+import { Command } from '../CommandType'
 import translate from '@iamtraction/google-translate'
+
+const DEFAULT_LIMIT = 10
+const MAX_LIMIT = 25
 
 export const translateCommand: Command = {
   name: 'translate',
-  description: 'translates the last 10 msgs',
+  description: 'Translates the latest messages in the channel.',
   options: [
     {
       name: 'limit',
-      type: 4,
-      description: 'how many messages you want to translate',
+      type: ApplicationCommandOptionType.Integer,
+      description: 'How many messages to translate (default: 10)',
       required: false,
-      max_value: 25,
+      min_value: 1,
+      max_value: MAX_LIMIT,
     },
   ],
-  type: ApplicationCommandType.ChatInput,
-  run: async (client: Client, interaction: CommandInteraction) => {
-    let numberLimit: number = 10
-    let replies: string[] = []
+  run: async (
+    _client: Client,
+    interaction: ChatInputCommandInteraction
+  ): Promise<void> => {
+    const limit =
+      interaction.options.getInteger('limit', false) ?? DEFAULT_LIMIT
 
-    //get value of limit from the command
-    if (interaction.options.get('limit')) {
-      numberLimit = interaction.options.get('limit')!.value! as number
+    const channel = interaction.channel
+
+    if (!channel || !channel.isTextBased() || !('messages' in channel)) {
+      await interaction.reply({
+        content: 'I cannot read messages in this channel.',
+        flags: 'Ephemeral',
+      })
+
+      return
     }
 
-    //get the channel
-    let interactionChannel = interaction.channelId
-    let channel = await client.channels.fetch(interactionChannel)
+    await interaction.deferReply({ flags: 'Ephemeral' })
 
-    if (!channel!.isTextBased()) return
+    try {
+      const messages = await channel.messages.fetch({
+        limit,
+      })
 
-    //get the messages from the channel
-    const messages = await channel.messages.fetch({ limit: numberLimit })
+      const userMessages = [...messages.values()]
+        .filter((m) => !m.author.bot)
+        .filter((m) => m.content.trim().length > 0)
 
-    for (const message of messages) {
-      //translate all the messages individually
-      const translated = await translate(message[1].content, { to: 'en' })
-
-      //if not bot, push them to the replies array
-      if (!message[1].author.bot) {
-        replies.push(`${message[1].author.username} said: ${translated.text}`)
+      if (userMessages.length == 0) {
+        await interaction.editReply('There are no messages to translate.')
       }
+
+      const translations = await Promise.all(
+        userMessages.map(async (m) => {
+          const translated = await translate(m.content, {
+            to: 'en',
+          })
+
+          return `**${m.author.username}:** ${translated.text}`
+        })
+      )
+
+      const content = translations.join('\n')
+
+      await interaction.editReply({
+        content,
+      })
+    } catch (error) {
+      console.error('Failed to translate messages: ', error)
+
+      await interaction.editReply('Something went wrong while translating.')
     }
-
-    //reverse the array and make it into a string
-    const content = replies.reverse().join(' \n')
-
-    await interaction.followUp({
-      ephemeral: true,
-      content,
-    })
   },
 }

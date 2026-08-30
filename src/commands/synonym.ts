@@ -1,5 +1,10 @@
-import { CommandInteraction, Client, ApplicationCommandType } from 'discord.js'
-import { Command } from '../Command'
+import {
+  ChatInputCommandInteraction,
+  Client,
+  ApplicationCommandType,
+  ApplicationCommandOptionType,
+} from 'discord.js'
+import { Command } from '../CommandType'
 const tcom = require('thesaurus-com')
 
 export const synonymCommand: Command = {
@@ -9,26 +14,32 @@ export const synonymCommand: Command = {
   options: [
     {
       name: 'word',
-      type: 2,
+      type: ApplicationCommandOptionType.String,
       description: 'What word do you want a synonym for?',
-    //   required: true
+      required: true,
     },
   ],
-  run: async (client: Client, interaction: CommandInteraction) => {
-    let translation: string
-    let word: string
+  run: async (_client: Client, interaction: ChatInputCommandInteraction) => {
+    await interaction.deferReply()
 
-    if (interaction.options.get('word')) {
-        word = interaction.options.get('word')!.value! as string
+    try {
+      if (interaction.options.get('word')) {
+        const word = interaction.options.get('word')?.value
 
-        translation = await tcom.search(word)
-    } else {
-        translation = "you didn't specify a word to translate"
+        if (typeof word !== 'string') {
+          await interaction.editReply('The value provided was not a string')
+          return
+        }
+        const synonym = await tcom.search(word)
+
+        interaction.editReply(synonym)
+      } else {
+        await interaction.editReply("you didn't specify a word to translate")
+      }
+    } catch (error) {
+      console.error('Failed to get synonym: ', error)
+
+      await interaction.editReply('Something went wrong while getting synonym.')
     }
-
-    await interaction.followUp({
-      ephemeral: false,
-      content: translation,
-    })
   },
 }

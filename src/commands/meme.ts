@@ -1,84 +1,90 @@
 import {
-  CommandInteraction,
+  ChatInputCommandInteraction,
   Client,
   ApplicationCommandType,
   EmbedBuilder,
+  ApplicationCommandOptionType,
 } from 'discord.js'
-import { Command } from '../Command'
+import { Command } from '../CommandType'
 import { meme } from 'memejs'
+import { getRandomMeme } from '../Services/memeService'
 
-type memeEmbet = {
+interface Meme {
   title: string
   url: string
   subreddit: string
   author: string
 }
 
-const altURL =
-  'https://cdn.discordapp.com/attachments/971431997304094781/1048357331701862410/unknown.png'
+const DEFAULT_SUBREDDIT = 'dankmemes'
+const FALLBACK_IMAGE_URL = 'https://i.imgflip.com/4u6pjy.jpg'
+const SUBREDDIT_CHOICES = [
+  {
+    name: 'Dank Memes',
+    value: 'dankmemes',
+  },
+  {
+    name: 'me irl',
+    value: 'me_irl',
+  },
+  {
+    name: 'Formule Dank',
+    value: 'formuladank',
+  },
+  {
+    name: 'Dark memes',
+    value: 'Darkmemes4u',
+  },
+  {
+    name: 'Soccer Memes',
+    value: 'soccermemes',
+  },
+]
 
 export const memeCommand: Command = {
   name: 'meme',
   description: 'get a meme from reddit',
+  type: ApplicationCommandType.ChatInput,
   options: [
     {
       name: 'subreddit',
-      type: 3,
+      type: ApplicationCommandOptionType.String,
       description: 'What sub do u want the meme from',
       required: false,
-      choices: [
-        {
-          name: 'Dank Memes',
-          value: 'dankmemes',
-        },
-        {
-          name: 'me irl',
-          value: 'me_irl',
-        },
-        {
-          name: 'Formule Dank',
-          value: 'formuladank',
-        },
-        {
-          name: 'Dark memes',
-          value: 'Darkmemes4u',
-        },
-        {
-          name: 'Soccer Memes',
-          value: 'soccermemes',
-        },
-      ],
+      choices: SUBREDDIT_CHOICES,
     },
   ],
-  type: ApplicationCommandType.ChatInput,
-  run: async (client: Client, interaction: CommandInteraction) => {
-    let subreddit =
-      (interaction.options.get('subreddit')?.value! as string) ?? 'dankmemes'
+  run: async (_client: Client, interaction: ChatInputCommandInteraction) => {
+    const subreddit =
+      interaction.options.getString('subreddit') ?? DEFAULT_SUBREDDIT
 
-    await meme(subreddit)
-      .then((m) => createEmbed(m))
-      .catch((e) => createEmbed(e))
+    await interaction.deferReply()
 
-    async function createEmbed(data: memeEmbet) {
-      let embed: EmbedBuilder
+    try {
+      const data = await getRandomMeme(subreddit)
 
-      if (typeof data !== 'object') {
-        embed = new EmbedBuilder()
-          .setTitle('something went wrong')
-          .setColor('Default')
-          .setImage(altURL)
-      } else {
-        embed = new EmbedBuilder()
-          .setTitle(data.title)
-          .setColor('Default')
-          .setImage(data.url)
-          .setFooter({ text: `${data.subreddit}; ${data.author}` })
-      }
-
-      await interaction.followUp({
-        ephemeral: true,
-        embeds: [embed],
+      await interaction.editReply({
+        embeds: [createMemeEmbed(data)],
       })
+    } catch (error) {
+      console.error(`Failed to fetch meme from r/${subreddit}:`, error)
+
+      await interaction.editReply({ embeds: [createErrorEmbed()] })
     }
   },
+}
+
+function createMemeEmbed(data: Meme): EmbedBuilder {
+  return new EmbedBuilder()
+    .setTitle(data.title)
+    .setImage(data.url)
+    .setFooter({
+      text: `r/${data.subreddit} • u/${data.author}`,
+    })
+}
+
+function createErrorEmbed(): EmbedBuilder {
+  return new EmbedBuilder()
+    .setTitle('Something went wrong')
+    .setImage(FALLBACK_IMAGE_URL)
 }
